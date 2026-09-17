@@ -1,1 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#4b0304"/><text x="32" y="43" fill="#e0c14f" font-family="Arial,sans-serif" font-weight="700" font-size="32" text-anchor="middle">C</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="cstrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E63946" />
+      <stop offset="50%" stop-color="#B31B2C" />
+      <stop offset="100%" stop-color="#1D3557" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF1C1" />
+      <stop offset="100%" stop-color="#F2C14E" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#cstrGrad)" />
+  <circle cx="32" cy="32" r="25" fill="none" stroke="url(#goldGrad)" stroke-width="2.5" />
+  <path d="M32 14 L36 24 L46 25 L38 32 L41 42 L32 36 L23 42 L26 32 L18 25 L28 24 Z" fill="#F2C14E" />
+  <path d="M32 23 C30 20 25 20 25 25 C25 30 32 35 32 35 C32 35 39 30 39 25 C39 20 34 20 32 23 Z" fill="#B31B2C" stroke="#FFF1C1" stroke-width="1.2" />
+  <text x="32" y="53" fill="#FFF1C1" font-family="'Montserrat',Arial,sans-serif" font-weight="800" font-size="9" text-anchor="middle" letter-spacing="1">CSTR</text>
+</svg>
+
