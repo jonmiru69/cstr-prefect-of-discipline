@@ -9,7 +9,7 @@ const row=(key:string,value:string)=>new TableRow({children:[new TableCell({chil
 export function createRecordDocument(data:ExportData){
  return new Document({
  creator:'CSTR Prefect of Discipline',title:'Confidential discipline record',description:'Authorized school record export',
- styles:{default:{document:{run:{font:'Arial',size:21},paragraph:{spacing:{after:100}}}},paragraphStyles:[{id:'Heading1',name:'Heading 1',basedOn:'Normal',next:'Normal',quickFormat:true,run:{font:'Arial',size:30,bold:true,color:'4B0304'}},{id:'Heading2',name:'Heading 2',basedOn:'Normal',next:'Normal',quickFormat:true,run:{font:'Arial',size:24,bold:true,color:'4B0304'}}]},
+ styles:{default:{document:{run:{font:'Arial',size:21},paragraph:{spacing:{after:100}}}},paragraphStyles:[{id:'Heading1',name:'Heading 1',basedOn:'Normal',next:'Normal',quickFormat:true,run:{font:'Arial',size:30,bold:true,color:'B31B2C'}},{id:'Heading2',name:'Heading 2',basedOn:'Normal',next:'Normal',quickFormat:true,run:{font:'Arial',size:24,bold:true,color:'B31B2C'}}]},
  sections:data.cases.map(c=>({
  properties:{page:{size:{width:11906,height:16838},margin:{top:1134,right:1134,bottom:1134,left:1134}}},
  headers:{default:new Header({children:[new Paragraph({text:'COLEGIO DE STO. TOMAS – RECOLETOS, INC.',alignment:AlignmentType.CENTER}),new Paragraph({text:'PREFECT OF DISCIPLINE • CONFIDENTIAL',alignment:AlignmentType.CENTER})]})},

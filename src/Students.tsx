@@ -1,24 +1,205 @@
 import { useState } from 'react';
-import { ArrowLeft,Download,Search,Pencil } from 'lucide-react';
-import { errorMessage,rpc } from './lib';
-import { canReview,type Bootstrap,type CaseSummary,type Student } from './types';
-import { Alert,Badge,Empty,Field,Loading,PageHeading,ReasonDialog,useLoad } from './ui';
+import { ArrowLeft, Download, Search, Pencil } from 'lucide-react';
+import { errorMessage, rpc } from './lib';
+import { canReview, type Bootstrap, type CaseSummary, type Student } from './types';
+import { Alert, Badge, Empty, Field, Loading, PageHeading, ReasonDialog, useLoad } from './ui';
 import { CaseTable } from './Cases';
-export function StudentSearch({onOpen}:{onOpen:(id:string)=>void}){
- const [query,setQuery]=useState(''),[search,setSearch]=useState('');
- const load=useLoad(()=>search?rpc<Student[]>('search_students',{p_query:search}):Promise.resolve([]),[search]);
- return <><PageHeading eyebrow="STUDENT RECORDS" title="Find a student" description="View a student’s recorded cases and history by school year."/>
- <section className="panel"><form className="student-search" onSubmit={e=>{e.preventDefault();setSearch(query.trim())}}><Field label="Student name or school ID"><input required minLength={2} maxLength={160} value={query} onChange={e=>setQuery(e.target.value)} placeholder="Enter at least two characters"/></Field><button className="button"><Search size={17}/>Search records</button></form>
- {load.loading?<Loading/>:load.error?<Alert>{load.error}</Alert>:load.data?.length?<div className="student-results">{load.data.map(s=><button key={s.id} onClick={()=>onOpen(s.id)}><div className="avatar">{s.full_name.slice(0,1)}</div><div><strong>{s.full_name}</strong><span>{s.school_id}</span></div><span>{s.case_count} recorded case{s.case_count!==1?'s':''}</span></button>)}</div>:<Empty title={search?'No matching student stored':'Search the office records'}>{search?'Check the school ID or spelling. An empty result does not certify that a student has no disciplinary history.':'Students appear here after their first incident is recorded.'}</Empty>}</section></>
+
+export function StudentSearch({ onOpen }: { onOpen: (id: string) => void }) {
+  const [query, setQuery] = useState('');
+  const [search, setSearch] = useState('');
+  const load = useLoad(() => search ? rpc<Student[]>('search_students', { p_query: search }) : Promise.resolve([]), [search]);
+
+  return (
+    <>
+      <PageHeading 
+        eyebrow="STUDENT DISCIPLINE DIRECTORY" 
+        title="Find a student" 
+        description="Search a student’s recorded incident history and role across school years." 
+      />
+
+      <section className="panel">
+        <form 
+          className="student-search" 
+          onSubmit={e => {
+            e.preventDefault();
+            setSearch(query.trim());
+          }}
+        >
+          <Field label="Student name or school ID">
+            <input 
+              required 
+              minLength={2} 
+              maxLength={160} 
+              value={query} 
+              onChange={e => setQuery(e.target.value)} 
+              placeholder="Enter at least two characters (e.g., Dela Cruz or 2024-)" 
+            />
+          </Field>
+          <button type="submit" className="button">
+            <Search size={17} />Search records
+          </button>
+        </form>
+
+        {load.loading ? <Loading /> : load.error ? (
+          <Alert>{load.error}</Alert>
+        ) : load.data?.length ? (
+          <div className="student-results">
+            {load.data.map(s => (
+              <button type="button" key={s.id} onClick={() => onOpen(s.id)}>
+                <div className="avatar">{s.full_name.slice(0, 1)}</div>
+                <div>
+                  <strong>{s.full_name}</strong>
+                  <span>ID: {s.school_id}</span>
+                </div>
+                <span className="badge badge-under_review">
+                  {s.case_count} recorded case{s.case_count !== 1 ? 's' : ''}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <Empty title={search ? 'No matching student stored' : 'Search the office records'}>
+            {search 
+              ? 'Check the student ID or spelling. An empty result does not certify that a student has no disciplinary history.' 
+              : 'Students appear here after their first incident is officially recorded.'}
+          </Empty>
+        )}
+      </section>
+    </>
+  );
 }
-export function StudentRecord({id,boot,onBack,onCase}:{id:string;boot:Bootstrap;onBack:()=>void;onCase:(id:string)=>void}){
- const [year,setYear]=useState(''),[editing,setEditing]=useState(false),[name,setName]=useState(''),[schoolId,setSchoolId]=useState(''),[exporting,setExporting]=useState(false),[error,setError]=useState('');
- const load=useLoad(()=>rpc<{student:Student;cases:(CaseSummary&{student_role:string;finding:string;student_actions?:{id:string;kind:string;status:string;starts_on:string|null;ends_on:string|null}[]})[]}>('get_student_record',{p_id:id,p_year_id:year||null}),[id,year]);
- if(load.loading)return <Loading/>;if(load.error)return <Alert>{load.error}</Alert>;
- const s=load.data!.student;
- return <><button className="back-button" onClick={onBack}><ArrowLeft size={16}/>Student search</button><PageHeading eyebrow={'STUDENT ID · '+s.school_id} title={s.full_name} description="The student’s role in each incident is shown below." actions={<><button className="button secondary" disabled={exporting||!load.data!.cases.length} onClick={async()=>{setExporting(true);setError('');try{await (await import('./exports')).exportWord({studentId:id,yearId:year})}catch(e){setError(errorMessage(e))}finally{setExporting(false)}}}><Download size={17}/>{exporting?'Preparing…':'Export selected history'}</button>{canReview(boot.member.role)&&<button className="button secondary" onClick={()=>{setName(s.full_name);setSchoolId(s.school_id);setEditing(true)}}><Pencil size={16}/>Correct identity</button>}</>}/>
- {error&&<Alert>{error}</Alert>}<section className="panel no-pad"><div className="filter-bar"><Field label="School year"><select value={year} onChange={e=>setYear(e.target.value)}><option value="">All school years</option>{boot.years.map(y=><option key={y.id} value={y.id}>{y.label}</option>)}</select></Field><p className="subtle">{load.data!.cases.length} recorded case{load.data!.cases.length!==1?'s':''}</p></div>
- <div className="student-role-list">{load.data!.cases.map(c=><div key={c.id}><button className="record-link" onClick={()=>onCase(c.id)}>{c.case_no}</button><Badge value={c.student_role}/>{c.student_role==='respondent'&&<Badge value={c.finding}/>}<span className="subtle">{(c.student_actions||[]).map(a=>a.kind.replaceAll('_',' ')+' · '+a.status+(a.starts_on?' · '+a.starts_on:'')+(a.ends_on?' to '+a.ends_on:'')).join('; ')||'No recorded actions'}</span></div>)}</div><CaseTable items={load.data!.cases} onOpen={onCase}/></section>
- {editing&&<ReasonDialog title="Correct student identity" description="This changes the student’s name or school ID across the portal. The previous values and reason are kept in the audit log. It does not merge two students." onClose={()=>setEditing(false)} onSubmit={async reason=>{await rpc('correct_student',{p_id:id,p_school_id:schoolId,p_name:name,p_reason:reason});load.reload()}}><Field label="School ID"><input required maxLength={80} value={schoolId} onChange={e=>setSchoolId(e.target.value)}/></Field><Field label="Full name"><input required minLength={2} maxLength={160} value={name} onChange={e=>setName(e.target.value)}/></Field></ReasonDialog>}
- </>
+
+export function StudentRecord({ id, boot, onBack, onCase }: {
+  id: string;
+  boot: Bootstrap;
+  onBack: () => void;
+  onCase: (id: string) => void;
+}) {
+  const [year, setYear] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState('');
+  const [schoolId, setSchoolId] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [error, setError] = useState('');
+
+  const load = useLoad(
+    () => rpc<{
+      student: Student;
+      cases: (CaseSummary & {
+        student_role: string;
+        finding: string;
+        student_actions?: { id: string; kind: string; status: string; starts_on: string | null; ends_on: string | null }[];
+      })[];
+    }>('get_student_record', { p_id: id, p_year_id: year || null }),
+    [id, year]
+  );
+
+  if (load.loading) return <Loading />;
+  if (load.error) return <Alert>{load.error}</Alert>;
+
+  const s = load.data!.student;
+
+  return (
+    <>
+      <button type="button" className="back-button" onClick={onBack}>
+        <ArrowLeft size={16} />Student search
+      </button>
+
+      <PageHeading 
+        eyebrow={'STUDENT ID · ' + s.school_id} 
+        title={s.full_name} 
+        description="The student’s recorded incidents, findings, and disciplinary history." 
+        actions={(
+          <>
+            <button 
+              type="button" 
+              className="button secondary" 
+              disabled={exporting || !load.data!.cases.length} 
+              onClick={async () => {
+                setExporting(true);
+                setError('');
+                try {
+                  await (await import('./exports')).exportWord({ studentId: id, yearId: year });
+                } catch (e) {
+                  setError(errorMessage(e));
+                } finally {
+                  setExporting(false);
+                }
+              }}
+            >
+              <Download size={17} />{exporting ? 'Preparing…' : 'Export history (Word)'}
+            </button>
+            {canReview(boot.member.role) && (
+              <button 
+                type="button" 
+                className="button secondary" 
+                onClick={() => {
+                  setName(s.full_name);
+                  setSchoolId(s.school_id);
+                  setEditing(true);
+                }}
+              >
+                <Pencil size={16} />Correct identity
+              </button>
+            )}
+          </>
+        )}
+      />
+
+      {error && <Alert>{error}</Alert>}
+
+      <section className="panel no-pad">
+        <div className="filter-bar">
+          <Field label="Filter by school year">
+            <select value={year} onChange={e => setYear(e.target.value)}>
+              <option value="">All school years</option>
+              {boot.years.map(y => <option key={y.id} value={y.id}>{y.label}</option>)}
+            </select>
+          </Field>
+          <p className="subtle" style={{ margin: 'auto 0 4px auto' }}>
+            {load.data!.cases.length} recorded case{load.data!.cases.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+
+        <div className="student-role-list">
+          {load.data!.cases.map(c => (
+            <div key={c.id}>
+              <button type="button" className="record-link" onClick={() => onCase(c.id)}>
+                {c.case_no}
+              </button>
+              <Badge value={c.student_role} />
+              {c.student_role === 'respondent' && <Badge value={c.finding} />}
+              <span className="subtle">
+                {(c.student_actions || []).map(a => 
+                  a.kind.replaceAll('_', ' ') + ' · ' + a.status + (a.starts_on ? ' · ' + a.starts_on : '') + (a.ends_on ? ' to ' + a.ends_on : '')
+                ).join('; ') || 'No recorded actions'}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <CaseTable items={load.data!.cases} onOpen={onCase} />
+      </section>
+
+      {editing && (
+        <ReasonDialog 
+          title="Correct student identity" 
+          description="This changes the student’s name or school ID across the portal. The previous values and reason are preserved in the audit log. It does not merge two students." 
+          onClose={() => setEditing(false)} 
+          onSubmit={async reason => {
+            await rpc('correct_student', { p_id: id, p_school_id: schoolId, p_name: name, p_reason: reason });
+            load.reload();
+          }}
+        >
+          <Field label="School student ID">
+            <input required maxLength={80} value={schoolId} onChange={e => setSchoolId(e.target.value)} />
+          </Field>
+          <Field label="Full name">
+            <input required minLength={2} maxLength={160} value={name} onChange={e => setName(e.target.value)} />
+          </Field>
+        </ReasonDialog>
+      )}
+    </>
+  );
 }
