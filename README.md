@@ -44,7 +44,8 @@ Cloudflare: build command npm run build; build output dist; root repository root
 | File / folder | Purpose |
 |---|---|
 | src/ | React application, styles and Word exporter |
-| public/ | Security headers, privacy notice and favicon |
+| public/ | Security headers, privacy notice, app icons and web manifest |
+| branding/ | Original school seal (source for all app icons; not deployed) |
 | supabase/01_INSTALL.sql | One-time schema, database functions, access restrictions |
 | supabase/02_FIRST_PRINCIPAL.sql | First principal invitation template |
 | supabase/03_VERIFY_SECURITY.sql | Read-only installation checks |
